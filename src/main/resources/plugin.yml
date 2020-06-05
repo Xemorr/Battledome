@@ -1,0 +1,16 @@
+name: Battledome
+version: ${project.version}
+main: me.xemor.battledome.Battledome
+api-version: 1.13
+authors: [Xemor_]
+description: allows for the battledome gamemode to be played
+commands:
+  start:
+    description: Starts the battledome game.
+    usage: /start
+  reset:
+    description: Resets all the teams, and the match.
+    usage: /reset
+  team:
+    description: The root command of all team related commands.
+    usage: /team <subcommand>
