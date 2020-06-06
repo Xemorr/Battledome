@@ -17,6 +17,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
@@ -47,6 +48,7 @@ public class GameHandler implements Listener {
     }
 
     public void start() {
+        groupTeams();
         worldBorder.setSize(1500);
         worldBorder.setCenter(0, 0);
         worldBorder.setDamageAmount(4.0);
@@ -98,6 +100,35 @@ public class GameHandler implements Listener {
                 }
             }
         }.runTaskTimer(JavaPlugin.getPlugin(Battledome.class), 0L, 20L);
+    }
+
+    public void groupTeams() {
+        List<Team> teams = teamHandler.getTeams();
+        List<Team> leaderOnly = new ArrayList<>();
+        List<Team> oneMember = new ArrayList<>();
+        for (Team team : teams) {
+            if (team.getMembers().size() == 1) {
+                oneMember.add(team);
+            }
+            else if (team.getMembers().isEmpty()) {
+                leaderOnly.add(team);
+            }
+        }
+        for (Team team : oneMember) {
+            if (!leaderOnly.isEmpty()) {
+                Team leaderOnlyTeam = leaderOnly.remove(0);
+                teamHandler.addPlayer(leaderOnlyTeam.getTeamLeader(), team);
+            }
+        }
+        while (leaderOnly.size() >= 2) {
+            Team team = leaderOnly.remove(0);
+            Team team2 = leaderOnly.remove(0);
+            teamHandler.addPlayer(team2.getTeamLeader(), team);
+            if (leaderOnly.size() >= 1) {
+                Team team3 = leaderOnly.remove(0);
+                teamHandler.addPlayer(team3.getTeamLeader(), team);
+            }
+        }
     }
 
     @EventHandler
