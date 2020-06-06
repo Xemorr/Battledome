@@ -139,10 +139,11 @@ public class GameHandler implements Listener {
                 Team team = teamHandler.getTeam(player);
                 if (gracePeriod) {
                     if (player.getUniqueId().equals(team.getTeamLeader())) {
-                        if (!team.getMembers().isEmpty()) {
-                            Player otherPlayer = Bukkit.getPlayer(team.getMembers().get(0));
-                            if (otherPlayer != null) {
+                        for (UUID uuid : team.getMembers()) {
+                            Player otherPlayer = Bukkit.getPlayer(uuid);
+                            if (otherPlayer != null && !otherPlayer.equals(player)) {
                                 e.getPlayer().teleport(otherPlayer);
+                                break;
                             }
                         }
                     }
@@ -150,6 +151,14 @@ public class GameHandler implements Listener {
                         Player teamLeader = Bukkit.getPlayer(team.getTeamLeader());
                         if (teamLeader != null) {
                             player.teleport(teamLeader);
+                            return;
+                        }
+                        for (UUID uuid : team.getMembers()) {
+                            Player otherPlayer = Bukkit.getPlayer(uuid);
+                            if (otherPlayer != null && !otherPlayer.equals(player)) {
+                                e.getPlayer().teleport(otherPlayer);
+                                break;
+                            }
                         }
                     }
                 }
