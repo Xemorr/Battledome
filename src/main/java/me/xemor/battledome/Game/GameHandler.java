@@ -69,12 +69,11 @@ public class GameHandler implements Listener {
             Location teleLocation = block.getLocation().add(0, 1, 0);
             if (leader != null) {
                 leader.getInventory().addItem(new ItemStack(Material.NETHER_STAR, 3 - team.getMembers().size()));
-                leader.teleport(teleLocation);
             }
             for (UUID uuid : team.getMembers()) {
                 Player player = Bukkit.getPlayer(uuid);
                 if (player != null) {
-                    player.teleport(block.getLocation().add(0, 1, 0));
+                    player.teleport(teleLocation);
                 }
             }
         }
@@ -103,28 +102,28 @@ public class GameHandler implements Listener {
 
     public void groupTeams() {
         List<Team> teams = teamHandler.getTeams();
-        List<Team> leaderOnly = new ArrayList<>();
         List<Team> oneMember = new ArrayList<>();
+        List<Team> twoMembers = new ArrayList<>();
         for (Team team : teams) {
-            if (team.getMembers().size() == 1) {
+            if (team.getMembers().size() == 2) {
                 oneMember.add(team);
             }
-            else if (team.getMembers().isEmpty()) {
-                leaderOnly.add(team);
+            else if (team.getMembers().size() == 1) {
+                oneMember.add(team);
             }
         }
-        for (Team team : oneMember) {
-            if (!leaderOnly.isEmpty()) {
-                Team leaderOnlyTeam = leaderOnly.remove(0);
+        for (Team team : twoMembers) {
+            if (!oneMember.isEmpty()) {
+                Team leaderOnlyTeam = oneMember.remove(0);
                 teamHandler.addPlayer(leaderOnlyTeam.getTeamLeader(), team);
             }
         }
-        while (leaderOnly.size() >= 2) {
-            Team team = leaderOnly.remove(0);
-            Team team2 = leaderOnly.remove(0);
+        while (oneMember.size() >= 2) {
+            Team team = oneMember.remove(0);
+            Team team2 = oneMember.remove(0);
             teamHandler.addPlayer(team2.getTeamLeader(), team);
-            if (leaderOnly.size() >= 1) {
-                Team team3 = leaderOnly.remove(0);
+            if (oneMember.size() >= 1) {
+                Team team3 = oneMember.remove(0);
                 teamHandler.addPlayer(team3.getTeamLeader(), team);
             }
         }
@@ -137,38 +136,14 @@ public class GameHandler implements Listener {
             public void run() {
                 Player player = e.getPlayer();
                 Team team = teamHandler.getTeam(player);
-                if (gracePeriod) {
-                    if (player.getUniqueId().equals(team.getTeamLeader())) {
-                        for (UUID uuid : team.getMembers()) {
-                            Player otherPlayer = Bukkit.getPlayer(uuid);
-                            if (otherPlayer != null && !otherPlayer.equals(player)) {
-                                e.getPlayer().teleport(otherPlayer);
-                                break;
-                            }
-                        }
-                    }
-                    else {
-                        Player teamLeader = Bukkit.getPlayer(team.getTeamLeader());
-                        if (teamLeader != null) {
-                            player.teleport(teamLeader);
-                            return;
-                        }
-                        for (UUID uuid : team.getMembers()) {
-                            Player otherPlayer = Bukkit.getPlayer(uuid);
-                            if (otherPlayer != null && !otherPlayer.equals(player)) {
-                                e.getPlayer().teleport(otherPlayer);
-                                break;
-                            }
-                        }
+                for (UUID uuid : team.getMembers()) {
+                    Player otherPlayer = Bukkit.getPlayer(uuid);
+                    if (otherPlayer != null && !otherPlayer.equals(player)) {
+                        e.getPlayer().teleport(otherPlayer);
+                        break;
                     }
                 }
-                else {
-                    Player leader = Bukkit.getPlayer(team.getTeamLeader());
-                    if (leader == null || player.equals(leader)) {
-                        player.setGameMode(GameMode.SPECTATOR);
-                        return;
-                    }
-                    player.teleport(leader);
+                if (!gracePeriod) {
                     player.setGameMode(GameMode.SPECTATOR);
                 }
             }
@@ -198,32 +173,14 @@ public class GameHandler implements Listener {
         if (team == null || (gameStarted && !gracePeriod)) { //set them to spectator if the game's already started and this is first time running
             e.getPlayer().setGameMode(GameMode.SPECTATOR);
         }
-        else if (team != null && gameStarted) { //if they did already have a team and the game is started, then the fun logic begins.
-            if (player.getUniqueId().equals(team.getTeamLeader())) {
-                for (UUID uuid : team.getMembers()) {
-                    Player otherPlayer = Bukkit.getPlayer(uuid);
-                    if (otherPlayer != null) {
-                        player.teleport(otherPlayer);
-                        break;
-                    }
-                }
-            } //if team leader, find a member and teleport the leader to them.
-            else {
-                Player otherPlayer = Bukkit.getPlayer(team.getTeamLeader());
-                if (otherPlayer != null) {
+        else if (team != null && gameStarted) { //if they did already have a team and the grace period is over.
+            for (UUID uuid : team.getMembers()) {
+                Player otherPlayer = Bukkit.getPlayer(uuid);
+                if (otherPlayer != null && !player.equals(otherPlayer)) {
                     player.teleport(otherPlayer);
-                    return;
+                    break;
                 }
-                else {
-                    for (UUID uuid : team.getMembers()) {
-                        otherPlayer = Bukkit.getPlayer(uuid);
-                        if (otherPlayer != null && !player.equals(otherPlayer)) {
-                            player.teleport(otherPlayer);
-                            break;
-                        }
-                    }
-                }
-            } //if not team leader, find a player that is online and teleport to them.
+            }
         }
     }
 

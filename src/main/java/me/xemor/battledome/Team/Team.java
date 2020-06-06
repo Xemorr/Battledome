@@ -13,6 +13,7 @@ public class Team {
 
     public Team(UUID leader) {
         teamLeader = leader;
+        members.add(teamLeader);
     }
 
     public boolean hasPlayer(Player player) {
@@ -29,7 +30,7 @@ public class Team {
     }
 
     public UUID getTeamLeader() {
-        return teamLeader;
+        return members.get(0);
     }
 
     public List<UUID> getMembers() {

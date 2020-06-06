@@ -30,11 +30,7 @@ public class Invite implements SubCommand {
             if (team == null) {
                 team = teamHandler.createTeam(sender);
             }
-            if (player.getUniqueId().equals(team.getTeamLeader())) {
-                commandSender.sendMessage("You cannot invite the leader to their own party!");
-                return;
-            }
-            if (team.getMembers().size() > 2) {
+            if (team.getMembers().size() >= 3) {
                 commandSender.sendMessage("Your party is full!");
                 return;
             }
