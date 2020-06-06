@@ -1,4 +1,4 @@
-package me.xemor.battledome.Command;
+package me.xemor.battledome.Game.Command;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;

@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Battledome:jar">
+    <output-path>D:/Holder/1.15.2 test server/plugins</output-path>
+    <root id="archive" name="Battledome.jar">
+      <element id="module-output" name="Battledome" />
+    </root>
+  </artifact>
+</component>

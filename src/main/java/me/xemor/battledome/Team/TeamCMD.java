@@ -1,22 +1,54 @@
 package me.xemor.battledome.Team;
 
+import me.xemor.battledome.Team.SubCommands.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class TeamCMD implements CommandExecutor, TabExecutor {
 
+    private TeamHandler teamHandler;
+    public TeamCMD(TeamHandler teamHandler) {
+        this.teamHandler = teamHandler;
+        subcommands.put("accept", new Accept(teamHandler));
+        subcommands.put("invite", new Invite(teamHandler));
+        subcommands.put("decline", new Decline(teamHandler));
+        subcommands.put("list", new me.xemor.battledome.Team.SubCommands.List(teamHandler));
+        subcommands.put("kick", new Kick(teamHandler));
+        subcommands.put("leave", new Leave(teamHandler));
+    }
+
+    private HashMap<String, SubCommand> subcommands = new HashMap<>();
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        return false;
+        if (args.length == 0) {
+            sender.sendMessage("You need to specify a subcommand!");
+        }
+        SubCommand subCommand = subcommands.get(args[0].toLowerCase());
+        if (subCommand == null) {
+            sender.sendMessage("That subcommand does not exist!");
+        }
+        subCommand.run(sender, args);
+        return true;
     }
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        return null;
+        List<String> tabComplete = new ArrayList<>();
+        if (args.length == 1) {
+            for (String subCommand : subcommands.keySet()) {
+                if (subCommand.startsWith(args[0])) {
+                    tabComplete.add(subCommand);
+                }
+            }
+        }
+        return tabComplete;
     }
 
 }
