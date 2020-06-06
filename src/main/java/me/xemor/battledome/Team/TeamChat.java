@@ -1,6 +1,7 @@
 package me.xemor.battledome.Team;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -13,7 +14,7 @@ public class TeamChat implements Listener {
 
     private HashSet<UUID> teamChatOn = new HashSet<>();
     private TeamHandler teamHandler;
-    private String teamChatFormat = "&8&l[&e&l%s&8&l]&7 ";
+    private String teamChatFormat = ChatColor.translateAlternateColorCodes('&', "&8&l[&e&l%s&8&l]&7 ");
 
     public TeamChat(TeamHandler teamHandler) {
         this.teamHandler = teamHandler;
