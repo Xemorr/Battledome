@@ -170,8 +170,10 @@ public class GameHandler implements Listener {
 
     @EventHandler
     public void onDamage(EntityDamageEvent e) {
-        if (e.getCause() == EntityDamageEvent.DamageCause.ENTITY_ATTACK && gracePeriod || !gameStarted) {
-            e.setCancelled(true);
+        if (e.getEntity() instanceof Player) {
+            if (e.getCause() == EntityDamageEvent.DamageCause.ENTITY_ATTACK && (gracePeriod || !gameStarted)) {
+                e.setCancelled(true);
+            }
         }
     }
 
