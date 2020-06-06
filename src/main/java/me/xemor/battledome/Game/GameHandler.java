@@ -185,14 +185,14 @@ public class GameHandler implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.LOW)
+    @EventHandler(priority = EventPriority.LOW) //ensures it runs before the other join event inside teamHandler
     public void join(PlayerJoinEvent e) {
         Team team = teamHandler.getTeam(e.getPlayer());
         Player player = e.getPlayer();
-        if (team == null || (gameStarted && !gracePeriod)) {
+        if (team == null || (gameStarted && !gracePeriod)) { //set them to spectator if the game's already started and this is first time running
             e.getPlayer().setGameMode(GameMode.SPECTATOR);
         }
-        else if (team != null && gameStarted) {
+        else if (team != null && gameStarted) { //if they did already have a team and the game is started, then the fun logic begins.
             if (player.getUniqueId().equals(team.getTeamLeader())) {
                 for (UUID uuid : team.getMembers()) {
                     Player otherPlayer = Bukkit.getPlayer(uuid);
@@ -201,7 +201,7 @@ public class GameHandler implements Listener {
                         break;
                     }
                 }
-            }
+            } //if team leader, find a member and teleport the leader to them.
             else {
                 Player otherPlayer = Bukkit.getPlayer(team.getTeamLeader());
                 if (otherPlayer != null) {
@@ -217,7 +217,7 @@ public class GameHandler implements Listener {
                         }
                     }
                 }
-            }
+            } //if not team leader, find a player that is online and teleport to them.
         }
     }
 
