@@ -2,6 +2,7 @@ package me.xemor.battledome.Team;
 
 import me.xemor.battledome.Battledome;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -22,6 +23,7 @@ public class TeamHandler implements Listener {
     private List<Team> teams = new ArrayList<>();
     private YamlConfiguration teamsFile;
     private File file;
+    private String prefix = ChatColor.translateAlternateColorCodes('&', "&8&l[&e&lTeam&8&l]&7");
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onJoin(PlayerJoinEvent e) {
@@ -158,6 +160,23 @@ public class TeamHandler implements Listener {
 
     public List<Team> getTeams() {
         return teams;
+    }
+
+    public void sendMessage(Team team, String message) {
+        for (UUID uuid : team.getMembers()) {
+            sendMessage(uuid, message);
+        }
+    }
+
+    public void sendMessage(Player player, String message) {
+        player.sendMessage(prefix + " " + message);
+    }
+
+    public void sendMessage(UUID uuid, String message) {
+        Player player = Bukkit.getPlayer(uuid);
+        if (player != null) {
+            sendMessage(player, message);
+        }
     }
 
 }

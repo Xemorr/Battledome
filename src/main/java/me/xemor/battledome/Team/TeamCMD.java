@@ -13,7 +13,7 @@ import java.util.List;
 public class TeamCMD implements CommandExecutor, TabExecutor {
 
     private TeamHandler teamHandler;
-    public TeamCMD(TeamHandler teamHandler) {
+    public TeamCMD(TeamHandler teamHandler, TeamChat teamChat) {
         this.teamHandler = teamHandler;
         subcommands.put("accept", new Accept(teamHandler));
         subcommands.put("invite", new Invite(teamHandler));
@@ -21,6 +21,7 @@ public class TeamCMD implements CommandExecutor, TabExecutor {
         subcommands.put("list", new me.xemor.battledome.Team.SubCommands.List(teamHandler));
         subcommands.put("kick", new Kick(teamHandler));
         subcommands.put("leave", new Leave(teamHandler));
+        subcommands.put("chat", new ChatToggle(teamHandler, teamChat));
     }
 
     private HashMap<String, SubCommand> subcommands = new HashMap<>();
@@ -33,6 +34,10 @@ public class TeamCMD implements CommandExecutor, TabExecutor {
         SubCommand subCommand = subcommands.get(args[0].toLowerCase());
         if (subCommand == null) {
             sender.sendMessage("That subcommand does not exist!");
+            sender.sendMessage("The possible commands are: ");
+            for (String str : subcommands.keySet()) {
+                sender.sendMessage(str);
+            }
         }
         subCommand.run(sender, args);
         return true;
