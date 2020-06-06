@@ -65,9 +65,10 @@ public class GameHandler implements Listener {
             int z = random.nextInt(1500) - 750;
             Block block = world.getHighestBlockAt(x, z);
             Player leader = Bukkit.getPlayer(team.getTeamLeader());
+            Location teleLocation = block.getLocation().add(0, 1, 0);
             if (leader != null) {
                 leader.getInventory().addItem(new ItemStack(Material.NETHER_STAR, 3 - team.getMembers().size()));
-                leader.teleport(block.getLocation().add(0, 1, 0));
+                leader.teleport(teleLocation);
             }
             for (UUID uuid : team.getMembers()) {
                 Player player = Bukkit.getPlayer(uuid);
@@ -159,11 +160,10 @@ public class GameHandler implements Listener {
 
     @EventHandler
     public void leave(PlayerQuitEvent e) {
-        if (e.getPlayer().getGameMode() == GameMode.SURVIVAL && gameStarted) {
+        if (e.getPlayer().getGameMode() == GameMode.SURVIVAL && gameStarted && !gracePeriod) {
             alivePlayers--;
             e.getPlayer().setHealth(0);
             Bukkit.broadcastMessage(e.getPlayer().getName() + " has disconnected, and died!");
         }
     }
-
 }
