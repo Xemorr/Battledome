@@ -1,5 +1,7 @@
 package me.xemor.battledome.Team;
 
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
@@ -11,6 +13,7 @@ public class TeamChat implements Listener {
 
     private HashSet<UUID> teamChatOn = new HashSet<>();
     private TeamHandler teamHandler;
+    private String teamChatFormat = "&8&l[&e&l%s&8&l]&7 ";
 
     public TeamChat(TeamHandler teamHandler) {
         this.teamHandler = teamHandler;
@@ -23,7 +26,7 @@ public class TeamChat implements Listener {
             if (team == null) {
                 return;
             }
-            teamHandler.sendMessage(team, e.getMessage());
+            sendMessage(team, e.getPlayer(), e.getMessage());
             e.setCancelled(true);
         }
     }
@@ -38,6 +41,16 @@ public class TeamChat implements Listener {
         }
         else {
             teamChatOn.remove(uuid);
+        }
+    }
+
+    public void sendMessage(Team team, Player asPlayer, String message) {
+        for (UUID uuid : team.getMembers()) {
+            Player player = Bukkit.getPlayer(uuid);
+            if (player == null) {
+                continue;
+            }
+            player.sendMessage(String.format(teamChatFormat + message, asPlayer.getName()));
         }
     }
 }

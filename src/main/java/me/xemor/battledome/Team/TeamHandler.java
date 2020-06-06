@@ -132,7 +132,13 @@ public class TeamHandler implements Listener {
 
     public void saveTeam(Team team) {
         ConfigurationSection configurationSection;
-        String key = team.getTeamLeader().toString();
+        String key;
+        try {
+            key = team.getTeamLeader().toString();
+        } catch(IndexOutOfBoundsException e) {
+            teams.remove(team);
+            return;
+        }
         if (teamsFile.isConfigurationSection(key)) {
             configurationSection = teamsFile.getConfigurationSection(key);
         }
