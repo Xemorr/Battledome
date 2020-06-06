@@ -7,6 +7,7 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -184,10 +185,39 @@ public class GameHandler implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOW)
     public void join(PlayerJoinEvent e) {
-        if (gameStarted) {
+        Team team = teamHandler.getTeam(e.getPlayer());
+        Player player = e.getPlayer();
+        if (team == null || (gameStarted && !gracePeriod)) {
             e.getPlayer().setGameMode(GameMode.SPECTATOR);
+        }
+        else if (team != null && gameStarted) {
+            if (player.getUniqueId().equals(team.getTeamLeader())) {
+                for (UUID uuid : team.getMembers()) {
+                    Player otherPlayer = Bukkit.getPlayer(uuid);
+                    if (otherPlayer != null) {
+                        player.teleport(otherPlayer);
+                        break;
+                    }
+                }
+            }
+            else {
+                Player otherPlayer = Bukkit.getPlayer(team.getTeamLeader());
+                if (otherPlayer != null) {
+                    player.teleport(otherPlayer);
+                    return;
+                }
+                else {
+                    for (UUID uuid : team.getMembers()) {
+                        otherPlayer = Bukkit.getPlayer(uuid);
+                        if (otherPlayer != null && !player.equals(otherPlayer)) {
+                            player.teleport(otherPlayer);
+                            break;
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -197,6 +227,7 @@ public class GameHandler implements Listener {
             alivePlayers--;
             e.getPlayer().setHealth(0);
             Bukkit.broadcastMessage(e.getPlayer().getName() + " has disconnected, and died!");
+            e.getPlayer().setGameMode(GameMode.SPECTATOR);
         }
     }
 }
