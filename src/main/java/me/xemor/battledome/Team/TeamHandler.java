@@ -106,14 +106,16 @@ public class TeamHandler implements Listener {
             if (removed.getTeamLeader().equals(player)) {
                 teams.remove(removed);
                 if (removed.getMembers().size() >= 1) {
-                    Team newTeam = createTeam(removed.getMembers().get(0));
+                    UUID firstMember = removed.getMembers().get(0);
+                    Team newTeam = createTeam(firstMember);
+                    removePlayer(firstMember, removed);
                     if (removed.getMembers().size() >= 2) {
                         addPlayer(removed.getMembers().get(1), newTeam);
                     }
                 }
             }
             else {
-                removePlayer(player, removed);
+                removed.removePlayer(player);
             }
         }
         uuidToTeam.put(player, team);
