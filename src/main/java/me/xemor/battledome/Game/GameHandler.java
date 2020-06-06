@@ -37,7 +37,7 @@ public class GameHandler implements Listener {
     String deathmatchDescription = "Good Luck!";
 
     String gracePeriodTitle = ChatColor.translateAlternateColorCodes('&', "&8&lGrace Period Over");
-    String gracePeriodDescription = "You can now permanently die!";
+    String gracePeriodDescription = "Death is now permanent!";
 
     public GameHandler(TeamHandler teamHandler) {
         this.teams = teamHandler.getTeams();
