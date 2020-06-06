@@ -18,7 +18,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
@@ -48,10 +47,9 @@ public class GameHandler implements Listener {
     }
 
     public void start() {
-        groupTeams();
-        worldBorder.setSize(1500);
+        worldBorder.setSize(1250);
         worldBorder.setCenter(0, 0);
-        worldBorder.setDamageAmount(4.0);
+        worldBorder.setDamageAmount(1.0);
         worldBorder.setDamageBuffer(0);
         worldBorder.setWarningDistance(30);
         startTime = System.currentTimeMillis();
@@ -62,13 +60,13 @@ public class GameHandler implements Listener {
         Random random = new Random();
         this.teams = teamHandler.getTeams();
         for (Team team : teams) {
-            int x = random.nextInt(1500) - 750;
-            int z = random.nextInt(1500) - 750;
+            int x = random.nextInt(1000) - 500;
+            int z = random.nextInt(1000) - 500;
             Block block = world.getHighestBlockAt(x, z);
             Player leader = Bukkit.getPlayer(team.getTeamLeader());
             Location teleLocation = block.getLocation().add(0, 1, 0);
             if (leader != null) {
-                leader.getInventory().addItem(new ItemStack(Material.NETHER_STAR, 3 - team.getMembers().size()));
+                leader.getInventory().addItem(new ItemStack(Material.NETHER_STAR, 4 - team.getMembers().size())); //compensation
             }
             for (UUID uuid : team.getMembers()) {
                 Player player = Bukkit.getPlayer(uuid);
@@ -99,14 +97,14 @@ public class GameHandler implements Listener {
             }
         }.runTaskTimer(JavaPlugin.getPlugin(Battledome.class), 0L, 20L);
     }
-
+/*
     public void groupTeams() {
         List<Team> teams = teamHandler.getTeams();
         List<Team> oneMember = new ArrayList<>();
         List<Team> twoMembers = new ArrayList<>();
         for (Team team : teams) {
             if (team.getMembers().size() == 2) {
-                oneMember.add(team);
+                twoMembers.add(team);
             }
             else if (team.getMembers().size() == 1) {
                 oneMember.add(team);
@@ -122,13 +120,15 @@ public class GameHandler implements Listener {
             Team team = oneMember.remove(0);
             Team team2 = oneMember.remove(0);
             teamHandler.addPlayer(team2.getTeamLeader(), team);
+            teamHandler.removePlayer(team2.getTeamLeader(), team2);
             if (oneMember.size() >= 1) {
                 Team team3 = oneMember.remove(0);
                 teamHandler.addPlayer(team3.getTeamLeader(), team);
+                teamHandler.removePlayer(team3.getTeamLeader(), team3);
             }
         }
     }
-
+*/
     @EventHandler
     public void onDeath(PlayerRespawnEvent e) {
         new BukkitRunnable() {

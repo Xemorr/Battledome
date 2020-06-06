@@ -22,7 +22,6 @@ public class List implements SubCommand {
             Team team = teamHandler.getTeam(sender);
             if (team == null) {
                 sender.sendMessage("You are not in a team!");
-
             }
             sender.sendMessage("Your team leader is: " + Bukkit.getOfflinePlayer(team.getTeamLeader()).getName());
             sender.sendMessage("Your members are: ");

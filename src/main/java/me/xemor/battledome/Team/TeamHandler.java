@@ -56,7 +56,7 @@ public class TeamHandler implements Listener {
     }
 
     public void invitePlayer(Player player, Team team) {
-        player.sendMessage("Use /team accept to accept the invitation from " + Bukkit.getOfflinePlayer(team.getMembers().get(0)).getName());
+        player.sendMessage("Use /team accept to accept the invitation from " + Bukkit.getOfflinePlayer(team.getTeamLeader()).getName());
         player.sendMessage("Use /team decline to get rid of the invitation.");
         if (invite.containsKey(player.getUniqueId())) {
             invite.replace(player.getUniqueId(), team);
@@ -101,23 +101,18 @@ public class TeamHandler implements Listener {
     }
 
     public void addPlayer(UUID player, Team team) {
-        team.addPlayer(player);
         if (team.getMembers().contains(player)) {
             return;
         }
         if (team.getMembers().size() == 3) {
             return;
         }
+        team.addPlayer(player);
         Team removed = uuidToTeam.remove(player);
         if (removed != null) {
-            if (removed.getMembers().get(0).equals(player)) {
-                teams.remove(removed);
-                for (UUID uuid : removed.getMembers()) {
-                    removed.removePlayer(player);
-                }
-            }
-            else {
-                removed.removePlayer(player);
+            removed.removePlayer(player);
+            if (removed.getMembers().isEmpty()) {
+                teams.remove(team);
             }
         }
         uuidToTeam.put(player, team);
@@ -146,6 +141,7 @@ public class TeamHandler implements Listener {
         for (UUID uuid : team.getMembers()) {
             strUUIDs.add(uuid.toString());
         }
+        strUUIDs.remove(0); //compensating for the first one being stored in the key
         configurationSection.set("members", strUUIDs);
         try {
             teamsFile.save(file);

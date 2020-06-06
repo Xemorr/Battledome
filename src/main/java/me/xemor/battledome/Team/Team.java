@@ -8,12 +8,10 @@ import java.util.UUID;
 
 public class Team {
 
-    UUID teamLeader;
     List<UUID> members = new ArrayList<>();
 
     public Team(UUID leader) {
-        teamLeader = leader;
-        members.add(teamLeader);
+        members.add(leader);
     }
 
     public boolean hasPlayer(Player player) {
