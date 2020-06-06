@@ -32,7 +32,6 @@ public class GameHandler implements Listener {
     boolean deathmatch;
     List<Team> teams;
     TeamHandler teamHandler;
-    int alivePlayers;
     boolean gameStarted = false;
 
     String deathmatchTitle = ChatColor.translateAlternateColorCodes('&', "&8&lDeathmatch");
@@ -58,7 +57,6 @@ public class GameHandler implements Listener {
         startTime = System.currentTimeMillis();
         gracePeriod = true;
         deathmatch = false;
-        alivePlayers = Bukkit.getOnlinePlayers().size();
         world.setGameRule(GameRule.KEEP_INVENTORY, true);
         gameStarted = true;
         Random random = new Random();
@@ -161,7 +159,6 @@ public class GameHandler implements Listener {
                         player.setGameMode(GameMode.SPECTATOR);
                         return;
                     }
-                    alivePlayers--;
                     player.teleport(leader);
                     player.setGameMode(GameMode.SPECTATOR);
                 }
@@ -224,7 +221,6 @@ public class GameHandler implements Listener {
     @EventHandler
     public void leave(PlayerQuitEvent e) {
         if (e.getPlayer().getGameMode() == GameMode.SURVIVAL && gameStarted && !gracePeriod) {
-            alivePlayers--;
             e.getPlayer().setHealth(0);
             Bukkit.broadcastMessage(e.getPlayer().getName() + " has disconnected, and died!");
             e.getPlayer().setGameMode(GameMode.SPECTATOR);
