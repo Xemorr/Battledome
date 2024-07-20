@@ -1,195 +1,161 @@
 package me.xemor.battledome.Game;
 
+import io.papermc.paper.entity.TeleportFlag;
 import me.xemor.battledome.Battledome;
-import me.xemor.battledome.Team.Team;
 import me.xemor.battledome.Team.TeamHandler;
 import org.bukkit.*;
-import org.bukkit.block.Block;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.List;
-import java.util.Random;
+import java.util.HashMap;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class GameHandler implements Listener {
 
-    WorldBorder worldBorder;
-    World world;
-    long startTime;
-    boolean gracePeriod;
-    boolean deathmatch;
-    List<Team> teams;
-    TeamHandler teamHandler;
-    boolean gameStarted = false;
+    private WorldBorder worldBorder;
+    private World world;
+    private int numberOfPlayers;
+    private boolean gracePeriod = false;
 
-    String deathmatchTitle = ChatColor.translateAlternateColorCodes('&', "&8&lDeathmatch");
-    String deathmatchDescription = "Good Luck!";
-
-    String gracePeriodTitle = ChatColor.translateAlternateColorCodes('&', "&8&lGrace Period Over");
-    String gracePeriodDescription = "Death is now permanent!";
+    private final TeamHandler teamHandler;
+    private boolean gameStarted = false;
+    private HashMap<UUID, Location> startLocations = new HashMap<>();
 
     public GameHandler(TeamHandler teamHandler) {
-        this.teams = teamHandler.getTeams();
         this.teamHandler = teamHandler;
-        world = Bukkit.getWorlds().get(0);
-        worldBorder = world.getWorldBorder();
     }
 
-    public void start() {
-        worldBorder.setSize(1250);
+    public void start(int graceSeconds) {
+        //WorldCreator worldCreator = new WorldCreator("battledome" + ThreadLocalRandom.current().nextInt(10000));
+        //FourCorners fourCorners = new FourCorners();
+        //worldCreator.biomeProvider(fourCorners);
+        //world = worldCreator.createWorld();
+        world = Bukkit.getWorld("world");
+        numberOfPlayers = Bukkit.getOnlinePlayers().size();
+        gameStarted = true;
+        gracePeriod = true;
+        int diameter = (int) Math.round(361 * Math.sqrt(numberOfPlayers));
+        configureStartingWorldBorder(diameter);
+        world.setTime(0);
+        int spawningRadius = (int) Math.round((diameter / 2D) * 0.95);
+        double currentRadian = 0;
+        double radianIncrement = (2 * Math.PI) / numberOfPlayers;
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            player.sendTitle(ChatColor.GREEN + "GRACE PERIOD", "Fighting others will result in a ban", 40, 100, 40);
+            player.sendMessage(ChatColor.GREEN + "GRACE PERIOD: Fighting others will result in a ban");
+            giveItems(player);
+            giveEffects(player, graceSeconds);
+            Location location = new Location(world, spawningRadius * Math.sin(currentRadian), 120, spawningRadius * Math.cos(currentRadian));
+            startLocations.put(player.getUniqueId(), location);
+            player.teleportAsync(location, PlayerTeleportEvent.TeleportCause.PLUGIN);
+            currentRadian += radianIncrement;
+        }
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                handlePostGracePeriod();
+            }
+        }.runTaskLater(JavaPlugin.getPlugin(Battledome.class), graceSeconds * 20L);
+    }
+
+    public void configureStartingWorldBorder(int diameter) {
+        worldBorder = world.getWorldBorder();
+        worldBorder.setSize(diameter);
         worldBorder.setCenter(0, 0);
         worldBorder.setDamageAmount(1.0);
         worldBorder.setDamageBuffer(0);
         worldBorder.setWarningDistance(30);
-        startTime = System.currentTimeMillis();
-        gracePeriod = true;
-        deathmatch = false;
-        world.setGameRule(GameRule.KEEP_INVENTORY, true);
-        gameStarted = true;
-        Random random = new Random();
-        this.teams = teamHandler.getTeams();
-        for (Team team : teams) {
-            int x = random.nextInt(1000) - 500;
-            int z = random.nextInt(1000) - 500;
-            Block block = world.getHighestBlockAt(x, z);
-            Player leader = Bukkit.getPlayer(team.getTeamLeader());
-            Location teleLocation = block.getLocation().add(0, 1, 0);
-            if (leader != null) {
-                leader.getInventory().addItem(new ItemStack(Material.NETHER_STAR, 4 - team.getMembers().size())); //compensation
-            }
-            for (UUID uuid : team.getMembers()) {
-                Player player = Bukkit.getPlayer(uuid);
-                if (player != null) {
-                    player.teleport(teleLocation);
-                }
-            }
+    }
+
+    public void giveItems(Player player) {
+        player.getInventory().addItem(new ItemStack(Material.COOKED_BEEF, 6));
+        player.getInventory().addItem(new ItemStack(Material.NETHER_STAR, 4));
+        ItemStack stoneAxe = new ItemStack(Material.STONE_AXE, 1);
+        stoneAxe.addEnchantment(Enchantment.EFFICIENCY, 1);
+        stoneAxe.addEnchantment(Enchantment.UNBREAKING, 1);
+        ItemStack stonePickaxe = new ItemStack(Material.STONE_PICKAXE, 1);
+        stonePickaxe.addEnchantment(Enchantment.EFFICIENCY, 1);
+        stonePickaxe.addEnchantment(Enchantment.UNBREAKING, 1);
+        ItemStack stoneShovel = new ItemStack(Material.STONE_SHOVEL, 1);
+        stoneShovel.addEnchantment(Enchantment.EFFICIENCY, 1);
+        stoneShovel.addEnchantment(Enchantment.UNBREAKING, 1);
+        player.getInventory().addItem(stoneAxe);
+        player.getInventory().addItem(stonePickaxe);
+        player.getInventory().addItem(stoneShovel);
+    }
+
+    public void giveEffects(Player player, int graceSeconds) {
+        player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, graceSeconds * 20, 12));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, graceSeconds * 20, 0));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING, 60 * 20, 1));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 60 * 20, 5));
+    }
+
+    public void handlePostGracePeriod() {
+        final long timeAtStart = System.currentTimeMillis();
+        long seconds = 2100;
+        worldBorder.setSize(25, seconds);
+        gracePeriod = false;
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            player.sendTitle(ChatColor.RED + "GRACE PERIOD OVER", "You may fight other players!", 40, 100, 40);
         }
         new BukkitRunnable() {
             @Override
             public void run() {
-                long currentTime = System.currentTimeMillis() - startTime;
-                if (currentTime >= (10 * (60 * 1000)) && gracePeriod) {
-                    worldBorder.setSize(50, (40 * 60));
-                    gracePeriod = false;
-                    world.setGameRule(GameRule.KEEP_INVENTORY, false);
-                    for (Player player : Bukkit.getOnlinePlayers()) {
-                        player.sendTitle(gracePeriodTitle, gracePeriodDescription, 10, 60, 10);
-                    }
+                final long currentTimeMillis = System.currentTimeMillis();
+                long playersAlive = Bukkit.getOnlinePlayers().stream().filter((player -> player.getGameMode() == GameMode.SURVIVAL)).count();
+                long untilMillis = Math.round(Math.ceil(((timeAtStart + seconds * 1000) - currentTimeMillis) * (playersAlive / ((double) numberOfPlayers))));
+                if (untilMillis > 0) {
+                    worldBorder.setSize(25, untilMillis / 1000);
                 }
-                if (currentTime >= (55 * (60 * 1000)) && (!deathmatch)) {
-                    Block block = world.getHighestBlockAt(0, 0);
-                    for (Player player : Bukkit.getOnlinePlayers()) {
-                        player.teleport(block.getLocation());
-                        player.sendTitle(deathmatchTitle, deathmatchDescription, 10, 60, 10);
-                    }
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 200, 1));
                 }
             }
-        }.runTaskTimer(JavaPlugin.getPlugin(Battledome.class), 0L, 20L);
-    }
-/*
-    public void groupTeams() {
-        List<Team> teams = teamHandler.getTeams();
-        List<Team> oneMember = new ArrayList<>();
-        List<Team> twoMembers = new ArrayList<>();
-        for (Team team : teams) {
-            if (team.getMembers().size() == 2) {
-                twoMembers.add(team);
-            }
-            else if (team.getMembers().size() == 1) {
-                oneMember.add(team);
-            }
-        }
-        for (Team team : twoMembers) {
-            if (!oneMember.isEmpty()) {
-                Team leaderOnlyTeam = oneMember.remove(0);
-                teamHandler.addPlayer(leaderOnlyTeam.getTeamLeader(), team);
-            }
-        }
-        while (oneMember.size() >= 2) {
-            Team team = oneMember.remove(0);
-            Team team2 = oneMember.remove(0);
-            teamHandler.addPlayer(team2.getTeamLeader(), team);
-            teamHandler.removePlayer(team2.getTeamLeader(), team2);
-            if (oneMember.size() >= 1) {
-                Team team3 = oneMember.remove(0);
-                teamHandler.addPlayer(team3.getTeamLeader(), team);
-                teamHandler.removePlayer(team3.getTeamLeader(), team3);
-            }
-        }
-    }
-*/
-    @EventHandler
-    public void onDeath(PlayerRespawnEvent e) {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                Player player = e.getPlayer();
-                Team team = teamHandler.getTeam(player);
-                for (UUID uuid : team.getMembers()) {
-                    Player otherPlayer = Bukkit.getPlayer(uuid);
-                    if (otherPlayer != null && !otherPlayer.equals(player)) {
-                        e.getPlayer().teleport(otherPlayer);
-                        break;
-                    }
-                }
-                if (!gracePeriod) {
-                    player.setGameMode(GameMode.SPECTATOR);
-                }
-            }
-        }.runTaskLater(JavaPlugin.getPlugin(Battledome.class), 5L);
+        }.runTaskTimer(JavaPlugin.getPlugin(Battledome.class), 200 * 20, 200 * 20);
+
     }
 
     @EventHandler
-    public void onDamage(EntityDamageEvent e) {
-        if (e.getEntity() instanceof Player) {
-            if (e.getCause() == EntityDamageEvent.DamageCause.ENTITY_ATTACK && (gracePeriod || !gameStarted)) {
+    public void onDamage(EntityDamageByEntityEvent e) {
+        if (e.getEntity() instanceof Player && e.getDamager() instanceof Player) {
+            if (gracePeriod) {
                 e.setCancelled(true);
             }
         }
     }
 
-    @EventHandler
-    public void onTeleport(PlayerTeleportEvent e) {
-        if (e.getPlayer().getGameMode() == GameMode.SPECTATOR && gameStarted) {
-            e.setCancelled(true);
-        }
-    }
-
-    @EventHandler(priority = EventPriority.LOW) //ensures it runs before the other join event inside teamHandler
-    public void join(PlayerJoinEvent e) {
-        Team team = teamHandler.getTeam(e.getPlayer());
-        Player player = e.getPlayer();
-        if (team == null || (gameStarted && !gracePeriod)) { //set them to spectator if the game's already started and this is first time running
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onRespawn(PlayerRespawnEvent e) {
+        if (!gracePeriod && gameStarted) {
             e.getPlayer().setGameMode(GameMode.SPECTATOR);
         }
-        else if (team != null && gameStarted) { //if they did already have a team and the grace period is over.
-            for (UUID uuid : team.getMembers()) {
-                Player otherPlayer = Bukkit.getPlayer(uuid);
-                if (otherPlayer != null && !player.equals(otherPlayer)) {
-                    player.teleport(otherPlayer);
-                    break;
-                }
+        else {
+            Location start = startLocations.get(e.getPlayer().getUniqueId());
+            if (start != null) {
+                e.setRespawnLocation(start);
+                e.getPlayer().teleport(start);
             }
         }
     }
 
     @EventHandler
-    public void leave(PlayerQuitEvent e) {
-        if (e.getPlayer().getGameMode() == GameMode.SURVIVAL && gameStarted && !gracePeriod) {
-            e.getPlayer().setHealth(0);
-            Bukkit.broadcastMessage(e.getPlayer().getName() + " has disconnected, and died!");
-            e.getPlayer().setGameMode(GameMode.SPECTATOR);
+    public void onDeath(EntityDeathEvent e) {
+        if (e.getEntity() instanceof Player player && !gracePeriod && gameStarted) {
+            player.getWorld().strikeLightningEffect(player.getLocation());
         }
     }
 }

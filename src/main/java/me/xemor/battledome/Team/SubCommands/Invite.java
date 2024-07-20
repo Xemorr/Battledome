@@ -15,7 +15,7 @@ public class Invite implements SubCommand {
 
     @Override
     public void run(CommandSender commandSender, String[] args) {
-        if (commandSender instanceof Player) {
+        if (commandSender instanceof Player sender) {
             if (args.length < 2) {
                 commandSender.sendMessage("You need to specify a player!");
                 return;
@@ -25,7 +25,6 @@ public class Invite implements SubCommand {
                 commandSender.sendMessage("This player does not exist.");
                 return;
             }
-            Player sender = (Player) commandSender;
             Team team = teamHandler.getTeam(sender);
             if (team == null) {
                 team = teamHandler.createTeam(sender);

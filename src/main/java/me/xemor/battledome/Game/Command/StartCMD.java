@@ -10,18 +10,16 @@ import org.bukkit.command.TabExecutor;
 import java.util.List;
 
 public class StartCMD implements CommandExecutor, TabExecutor {
-
-    private TeamHandler teamHandler;
     private GameHandler gameHandler;
-    public StartCMD(TeamHandler teamHandler, GameHandler gameHandler) {
-        this.teamHandler = teamHandler;
+    public StartCMD(GameHandler gameHandler) {
         this.gameHandler = gameHandler;
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (sender.hasPermission("battledome.start")) {
-            gameHandler.start();
+            if (args.length == 1) gameHandler.start(Integer.parseInt(args[0]));
+            else gameHandler.start(1050);
         }
         return true;
     }

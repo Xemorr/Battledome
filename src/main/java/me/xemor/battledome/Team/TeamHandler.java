@@ -23,7 +23,7 @@ public class TeamHandler implements Listener {
     private List<Team> teams = new ArrayList<>();
     private YamlConfiguration teamsFile;
     private File file;
-    private String prefix = ChatColor.translateAlternateColorCodes('&', "&8&l[&e&lTeam&8&l]&7");
+    private String prefix = ChatColor.translateAlternateColorCodes('&', "&8&l[&e&lTeam&8&l]&7 ");
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onJoin(PlayerJoinEvent e) {

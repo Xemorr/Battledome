@@ -22,6 +22,7 @@ public class TeamCMD implements CommandExecutor, TabExecutor {
         subcommands.put("kick", new Kick(teamHandler));
         subcommands.put("leave", new Leave(teamHandler));
         subcommands.put("chat", new ChatToggle(teamHandler, teamChat));
+        subcommands.put("all", new All());
     }
 
     private HashMap<String, SubCommand> subcommands = new HashMap<>();

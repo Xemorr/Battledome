@@ -8,15 +8,14 @@ import java.util.UUID;
 
 public class Team {
 
-    List<UUID> members = new ArrayList<>();
+    private final List<UUID> members = new ArrayList<>();
 
     public Team(UUID leader) {
         members.add(leader);
     }
 
     public boolean hasPlayer(Player player) {
-        return player.getUniqueId().equals(members)
-                || members.contains(player.getUniqueId());
+        return members.contains(player.getUniqueId());
     }
 
     protected void addPlayer(UUID player) {

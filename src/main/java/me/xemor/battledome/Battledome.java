@@ -10,7 +10,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public final class Battledome extends JavaPlugin {
 
-    private TeamHandler teamHandler;
+    private static TeamHandler teamHandler;
+    private static GameHandler gameHandler;
 
     @Override
     public void onEnable() {
@@ -25,9 +26,18 @@ public final class Battledome extends JavaPlugin {
         team.setExecutor(teamCMD);
         team.setTabCompleter(teamCMD);
         GameHandler gameHandler = new GameHandler(teamHandler);
-        StartCMD start = new StartCMD(teamHandler, gameHandler);
+        this.getServer().getPluginManager().registerEvents(gameHandler, this);
+        StartCMD start = new StartCMD(gameHandler);
         PluginCommand startCMD = this.getCommand("start");
         startCMD.setExecutor(start);
+    }
+
+    public static TeamHandler getTeamHandler() {
+        return teamHandler;
+    }
+
+    public static GameHandler getGameHandler() {
+        return gameHandler;
     }
 
     @Override
